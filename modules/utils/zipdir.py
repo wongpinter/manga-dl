@@ -7,7 +7,7 @@ import tqdm
 def zipdir(basedir, archive_name):
     files = total_file(basedir)
 
-    pbar = tqdm.tqdm(total=len(files), unit=" images", desc="Creating CBZ file..")
+    pbar = tqdm.tqdm(total=len(files), unit=" images", desc="Creating CBZ file..", position=0, leave=False)
     with closing(ZipFile(archive_name, "w", ZIP_DEFLATED)) as z:
         for abs_file, rel_file in files:
             pbar.update()
