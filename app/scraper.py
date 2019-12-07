@@ -18,9 +18,14 @@ class Scraper:
 
         return chapters
 
+    def create_cbz(self):
+        manga = "{}/{}".format(MANGA_STORAGE_PATH, self.manga_name)
+        zipdir(basedir=manga, archive_name="{}/{}.cbz".format(CBZ_STORAGE_PATH, self.manga_name))
+
+        logger.info("Creating CBZ file success.")
+
     def run(self):
         worker = Worker(self.all_chapters(), handle_tasks, MAX_THREAD)
         worker.run()
 
-        manga = "{}/{}".format(MANGA_STORAGE_PATH, self.manga_name)
-        zipdir(basedir=manga, archive_name="{}/{}.cbz".format(CBZ_STORAGE_PATH, self.manga_name))
+        self.create_cbz()

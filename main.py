@@ -10,11 +10,10 @@ def cli():
     pass
 
 
-@click.command()
-def all_chapters():
+@click.command(options_metavar='<options>')
+@click.option('--url', prompt='Manga URL', help='Mangafun URL for the manga')
+def all_chapters(url):
     from app.scraper import Scraper
-
-    url = click.prompt("Manga URL")
 
     scraper = Scraper(url)
 
@@ -22,7 +21,7 @@ def all_chapters():
     scraper.run()
 
 
-cli.add_command(all_chapters)
+cli.add_command(all_chapters, )
 
 if __name__ == '__main__':
     cli()
