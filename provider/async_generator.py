@@ -31,6 +31,7 @@ class Generator:
         self.limit = 50
         self.all_urls = []
         self.url = main_url
+        self.manga_name = ""
         self.folder_path = folder_path
         self.loop = asyncio.get_event_loop()
 
@@ -51,6 +52,8 @@ class Generator:
         chapters = json.loads(response['data']['chapter']['pages'])
         chapter_number = str(response['data']['chapter']['number'])
         manga_name = response['data']['chapter']['manga']['title']
+
+        self.manga_name = manga_name
 
         folder_download = pathlib.Path(self.folder_path, manga_name, chapter_name(chapter_number))
 
@@ -95,10 +98,13 @@ class Generator:
         async with aiohttp.ClientSession(connector=connector) as session:
             await self.run(session, chapter_urls)
 
+    def get_manga_name(self):
+        return self.manga_name
+
     def main(self):
         chapter_urls = self.parse_chapters()
         self.loop.run_until_complete(self.parse_all_urls(chapter_urls))
 
-        logger.info("Total Chapter {}, Total images {}".format(len(chapter_urls), len(self.all_urls)))
+        logger.info("Manga name: {}. Total Chapter {}, Total images {}".format(self.manga_name, len(chapter_urls), len(self.all_urls)))
 
         return self.all_urls
