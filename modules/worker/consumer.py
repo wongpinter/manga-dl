@@ -34,7 +34,7 @@ async def get_body(url, folder):
             )
 
 
-@retry(aiohttp.ClientConnectionError, aiohttp.ClientError, aiohttp.ClientResponseError, asyncio.exceptions.TimeoutError, concurrent.futures._base.TimeoutError, verbose=False)
+@retry(aiohttp.ClientConnectionError, aiohttp.ClientError, aiohttp.ClientResponseError, concurrent.futures._base.TimeoutError, verbose=False)
 async def fetch(session, url, folder_name):
     image_filename = "_empty.jpg"
     if url.find('/'):
