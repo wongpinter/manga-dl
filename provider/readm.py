@@ -64,6 +64,9 @@ class Generator:
 
         soup = BeautifulSoup(response, 'lxml')
 
+        if soup is None:
+            return result_chapter
+
         links = soup.find("div", {'class': "ch-images ch-image-container"})
 
         chapter = parsing_chapter_name(soup)
