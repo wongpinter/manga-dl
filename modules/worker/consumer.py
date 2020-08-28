@@ -18,7 +18,7 @@ def user_agent():
 
 async def get_body(url, folder):
     header = user_agent()
-    connector = aiohttp.TCPConnector(limit=10, ttl_dns_cache=33600)
+    connector = aiohttp.TCPConnector(limit=30, ttl_dns_cache=33600)
 
     async with aiohttp.ClientSession(connector=connector, headers=header) as session:
         try:
@@ -34,7 +34,7 @@ async def get_body(url, folder):
             )
 
 
-@retry(aiohttp.ClientConnectionError, aiohttp.ClientError, aiohttp.ClientResponseError, concurrent.futures._base.TimeoutError, verbose=False)
+@retry(aiohttp.ClientConnectionError, aiohttp.ClientError, asyncio.exceptions.TimeoutError, aiohttp.ClientResponseError, concurrent.futures._base.TimeoutError, verbose=False)
 async def fetch(session, url, folder_name):
     image_filename = "_empty.jpg"
     if url.find('/'):

@@ -2,6 +2,7 @@ import requests
 import pathlib
 import json
 import tqdm
+import re
 import aiohttp
 from bs4 import BeautifulSoup
 from natsort import natsorted
@@ -10,20 +11,23 @@ import asyncio
 
 
 def chapter_name(numbering, width=3):
-    if not "." in numbering:
+    if numbering not in ".":
         return "Chapter {}".format(numbering.zfill(width))
 
     bits = numbering.split('.')
     return "Chapter {}".format("%s.%s" % (bits[0].zfill(width), bits[1]))
 
 
-def parsing_chapter_name(chapter_url):
-    chapters = chapter_url.rsplit('/', 2)
+def parsing_chapter_name(soup):
+    chapter = soup.find('span', {'class': 'light-title'})
 
-    manga_name = chapters[1]
-    chapter_number = chapters[2].rsplit('-', 1)[1]
+    if chapter is None:
+        return None
 
-    return manga_name, chapter_number
+    chapter_number = re.search(r'Chapter (.+)', chapter.text)
+    chapter_number_name = chapter_name(chapter_number.group(1))
+
+    return chapter_number_name
 
 
 class Generator:
@@ -35,45 +39,47 @@ class Generator:
         self.folder_path = folder_path
         self.loop = asyncio.get_event_loop()
 
+    def parse_manga_title(self, soup):
+        title = soup.find('h1', {"class": "page-title"})
+
+        if title is not None:
+            self.manga_name = title.text
+
     def parse_chapters(self):
         page = requests.get(self.url)
         soup = BeautifulSoup(page.content, 'lxml')
 
-        section = soup.find('div', {'class': 'tab-content'})
+        section = soup.find('section', {'class': 'episodes-box'})
+
+        self.parse_manga_title(soup)
 
         chapter_urls = []
-        for link in section.find_all('li', {"class": "list-group-item"}):
-            chapter_urls.append(link.find("a")['href'])
+        for link in section.find_all('td', {'class', 'table-episodes-title'}):
+            chapter_urls.append("https://www.readm.org{}".format(link.find("a")['href']))
 
         return natsorted(chapter_urls)
 
-    async def parse_graph_results(self, response):
+    async def parse_manga_chapters(self, response):
         result_chapter = []
-        chapters = json.loads(response['data']['chapter']['pages'])
-        chapter_number = str(response['data']['chapter']['number'])
-        manga_name = response['data']['chapter']['manga']['title']
 
-        self.manga_name = manga_name
+        soup = BeautifulSoup(response, 'lxml')
 
-        folder_download = pathlib.Path(self.folder_path, manga_name, chapter_name(chapter_number))
+        links = soup.find("div", {'class': "ch-images ch-image-container"})
 
-        for chapter in chapters:
-            image_url = "https://cdn.mangahub.io/file/imghub/{}".format(chapters[chapter])
+        chapter = parsing_chapter_name(soup)
+
+        folder_download = pathlib.Path(self.folder_path, self.manga_name, chapter)
+
+        for link in links.find_all('img', {'class': 'img-responsive scroll-down'}):
+            image_url = "https://www.readm.org{}".format(link['src'])
             self.all_urls.append([folder_download, image_url])
 
         return result_chapter
 
     async def fetch(self, url, session):
-        manga_name, chapter_number = parsing_chapter_name(url)
-
-        query = "{chapter(x:mn01, slug:\"" + manga_name + "\", number:" + str(
-            chapter_number) + "){id,title,mangaID,number,slug,date,pages,noAd,manga{id,title,slug,mainSlug,author," \
-                              "isWebtoon,isYaoi,isPorn,isSoftPorn,unauthFile,isLicensed}}}"
-
-        url = 'https://api2.mangahub.io/graphql'
-        async with session.post(url, json={'query': query}) as response:
-            json_response = await response.json()
-            return await self.parse_graph_results(json_response)
+        async with session.get(url) as response:
+            response = await response.text()
+            return await self.parse_manga_chapters(response)
 
     async def limiting_fetch(self, semp, url, session):
         async with semp:
@@ -103,8 +109,10 @@ class Generator:
 
     def main(self):
         chapter_urls = self.parse_chapters()
+
         self.loop.run_until_complete(self.parse_all_urls(chapter_urls))
 
-        logger.info("Manga name: {}. Total Chapter {}, Total images {}".format(self.manga_name, len(chapter_urls), len(self.all_urls)))
+        logger.info("Manga name: {}. Total Chapter {}, Total images {}".format(self.manga_name, len(chapter_urls),
+                                                                               len(self.all_urls)))
 
         return self.all_urls

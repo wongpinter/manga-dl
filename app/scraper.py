@@ -1,5 +1,6 @@
+import os.path
 from modules.worker import Worker, handle_tasks
-from provider.async_generator import Generator
+from provider.readm import Generator
 from modules.utils import logger, zipdir
 from settings import MAX_THREAD, MANGA_STORAGE_PATH, CBZ_STORAGE_PATH
 
@@ -20,6 +21,10 @@ class Scraper:
 
     def create_cbz(self):
         manga = "{}/{}".format(MANGA_STORAGE_PATH, self.manga_name)
+
+        if os.path.isdir(CBZ_STORAGE_PATH) is False:
+            os.mkdir(CBZ_STORAGE_PATH)
+
         zipdir(basedir=manga, archive_name="{}/{}.cbz".format(CBZ_STORAGE_PATH, self.manga_name))
 
         logger.info("Creating CBZ file success.")
