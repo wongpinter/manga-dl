@@ -71,6 +71,9 @@ class Generator:
 
         chapter = parsing_chapter_name(soup)
 
+        if chapter is None:
+            return result_chapter
+
         folder_download = pathlib.Path(self.folder_path, self.manga_name, chapter)
 
         for link in links.find_all('img', {'class': 'img-responsive scroll-down'}):
