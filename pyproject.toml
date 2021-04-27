@@ -5,7 +5,7 @@ description = "Python package for scraping manga/manhua/manhwa from various mang
 authors = ["Wongpinter"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.7"
 requests = "^2.25.1"
 click = "^7.1.2"
 beautifulsoup4 = "^4.9.3"
@@ -13,6 +13,11 @@ aiohttp = "^3.7.4"
 lxml = "^4.6.3"
 natsort = "^7.1.1"
 fake-useragent = "^0.1.11"
+python-dotenv = "^0.17.0"
+loguru = "^0.5.3"
+tqdm = "^4.60.0"
+tldextract = "^3.1.0"
+aiofiles = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 

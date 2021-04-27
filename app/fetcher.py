@@ -1,20 +1,34 @@
 import os.path
+
+from loguru import logger
+
+from providers import provider as provider_module
 from modules.worker import Worker, handle_tasks
-from provider.readm import Generator
-from modules.utils import logger, zipdir
-from settings import MAX_THREAD, MANGA_STORAGE_PATH, CBZ_STORAGE_PATH
+from modules.utils import zipdir
+from config import MAX_THREAD, MANGA_STORAGE_PATH, CBZ_STORAGE_PATH
 
 
-class Scraper:
-    def __init__(self, url):
+class Fetcher:
+    manga_name = None
+
+    def __init__(self, provider, url):
+        _module = Fetcher._init_provider_module(provider)
+
+        self.generator = _module.Generator
         self.url = url
-        self.manga_name = ""
+
+    @staticmethod
+    def _init_provider_module(provider):
+        provider_module.provider_name = provider
+        _module = __import__(f'providers.{provider}', globals(), locals(), ['Generator'])
+
+        return _module
 
     def all_chapters(self):
-        generator = Generator(self.url, folder_path=MANGA_STORAGE_PATH)
+        generator = self.generator(self.url, folder_path=MANGA_STORAGE_PATH)
         logger.info("Parsing {}".format(self.url))
 
-        chapters = generator.main()
+        chapters = generator.run()
         self.manga_name = generator.get_manga_name()
 
         return chapters

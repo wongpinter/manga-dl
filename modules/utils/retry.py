@@ -1,9 +1,7 @@
-import logging
 import asyncio
 
 from functools import wraps
-
-log = logging.getLogger(__name__)
+from loguru import logger
 
 
 def retry(*exceptions, retries=3, cooldown=2, verbose=True):

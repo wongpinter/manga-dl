@@ -1,7 +1,7 @@
 import asyncio
 import tqdm
 
-from modules.utils import logger
+from loguru import logger
 
 
 class Producer:
@@ -10,10 +10,10 @@ class Producer:
         self.urls = urls
         self.handle_tasks = handle_tasks
         self.max_threads = max_threads
-        self.options = []
 
     def run(self):
         queue = asyncio.Queue()
+
         [queue.put_nowait([url, folder_name]) for folder_name, url in self.urls]
 
         logger.info("Proccessing {} images".format(queue.qsize()))
@@ -23,7 +23,7 @@ class Producer:
         )
 
         asyncio.set_event_loop(self.loop)
-        tasks = [self.handle_tasks(task_id, queue, progressbar, self.options) for task_id in range(self.max_threads)]
+        tasks = [self.handle_tasks(task_id, queue, progressbar) for task_id in range(self.max_threads)]
 
         try:
             self.loop.run_until_complete(asyncio.wait(tasks))
