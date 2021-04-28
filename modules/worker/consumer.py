@@ -22,7 +22,7 @@ def user_agent():
 
 async def get_body(url, folder):
     header = user_agent()
-    connector = aiohttp.TCPConnector(limit=CONNECTOR_LIMIT, ttl_dns_cache=33600)
+    connector = aiohttp.TCPConnector(limit=30, ttl_dns_cache=33600)
 
     async with aiohttp.ClientSession(connector=connector, headers=header) as session:
         try:

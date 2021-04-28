@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import click
+import sys
 import tldextract
 
 from loguru import logger
