@@ -54,7 +54,7 @@ class Common(object):
                                      "path"):
             _ = await future
 
-    @retry(aiohttp.ClientConnectionError, aiohttp.ClientError, asyncio.exceptions.TimeoutError,
+    @retry(aiohttp.ClientConnectionError, aiohttp.ClientError,
            aiohttp.ClientResponseError, verbose=False)
     async def get_pages_url(self, chapter_urls: List) -> List:
         connector = aiohttp.TCPConnector(limit=None)
